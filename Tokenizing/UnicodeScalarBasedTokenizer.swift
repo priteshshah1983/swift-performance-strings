@@ -86,19 +86,20 @@ struct UnicodeScalarBasedTokenizer: Tokenizing {
   private mutating func integerToken(
     startingWith first: UnicodeScalar
   ) throws -> Token {
-    var tokenText = String(first)
+    var tokenText = String.UnicodeScalarView()
+    tokenText.append(first)
 
     loop: while let ch = nextScalar() {
       switch ch {
       case "0"..."9":
-        tokenText.unicodeScalars.append(ch)
+        tokenText.append(ch)
       default:
         pushedBackScalar = ch
         break loop
       }
     }
 
-    guard let value = Int(tokenText) else {
+    guard let value = Int(String(tokenText)) else {
       throw TokenizingError.malformedInteger
     }
     return .integer(value)
@@ -111,14 +112,14 @@ struct UnicodeScalarBasedTokenizer: Tokenizing {
   /// - Throws: `TokenizeError.unterminatedString` if the end of the input was
   ///   reached without seeing a terminating quote.
   private mutating func stringToken() throws -> Token {
-    var tokenText = String()
+    var tokenText = String.UnicodeScalarView()
 
     while let ch = nextScalar() {
       switch ch {
       case "\"":
-        return .string(tokenText)
+        return .string(String(tokenText))
       default:
-        tokenText.unicodeScalars.append(ch)
+        tokenText.append(ch)
       }
     }
 
